@@ -1,0 +1,13 @@
+language: objective-c
+osx_image: xcode9.4
+before_install:
+    - brew tap vapor/homebrew-tap
+    - brew upgrade
+    - brew install vapor    
+    - swift package resolve
+    - gem install xcpretty
+script:
+    - swift package generate-xcodeproj
+    - set -o pipefail && xcodebuild -scheme AuthUser-Package -enableCodeCoverage YES clean build test | xcpretty
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
