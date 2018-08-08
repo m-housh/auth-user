@@ -50,9 +50,11 @@ public final class AuthUser<D>: AuthUserSupporting where D: Database & QuerySupp
     }
 }
 
+/// See `AuthUserSupporting`.
+/// Allows our user to be used as a parameter and return value in routes.
 extension AuthUser: Parameter, Content { }
 
-/// TODO: Add `unique` constraint on username here.
+
 extension AuthUser: Migration, AnyMigration where D: SchemaSupporting & MigrationSupporting {
     
     /// add's unique constraint to the username field.

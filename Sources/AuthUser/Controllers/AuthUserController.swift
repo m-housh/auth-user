@@ -84,8 +84,11 @@ open class AuthUserController<A>:AuthUserControllable where A: AuthUserSupportin
     init(path: PathComponentsRepresentable...,
         using middleware: [Middleware]? = nil) {
         
-        self.collection = ModelRouteCollection<User>(
-            path: path, using: middleware)
+        self.collection = ModelRouteCollection(
+            User.self,
+            path: path,
+            using: middleware
+        )
     }
     
 }
