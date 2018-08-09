@@ -36,9 +36,6 @@ public final class AuthUser<D>: AuthUserSupporting where D: Database & QuerySupp
         return \.id
     }
     
-    /// See `Model`
-    //public static var name: String { return "authUser" }
-    
     public var id: UUID?
     public var username: String
     public var password: String

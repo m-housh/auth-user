@@ -36,27 +36,28 @@ public enum AuthMiddlewareType {
 
 public struct AuthMiddleware<A> where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
     
-    private let authUser: A.Type
-    private let middlewares: [AuthMiddlewareType]
+    let middleware: AuthMiddlewareType
+    let type: A.Type
     
-    public var middleware: [Middleware] {
-        var middleware = middlewares.map { $0.middleware(using: authUser) }
-        middleware.append(authUser.guardAuthMiddleware())
-        return middleware
-        
+    init(_ type: A.Type = A.self, _ middleware: AuthMiddlewareType) {
+        self.type = type
+        self.middleware = middleware
     }
     
-    init(_ type: A.Type = A.self, using middleware: [AuthMiddlewareType]) {
-        self.authUser = type
-        self.middlewares = middleware
-    }
+}
+
+extension AuthMiddleware: Middleware {
     
+    public func respond(to request: Request, chainingTo next: Responder) throws -> EventLoopFuture<Response> {
+        return try middleware.middleware(using: type)
+            .respond(to: request, chainingTo: next)
+    }
 }
 
 extension Array where Element == AuthMiddlewareType {
     
     func authMiddleware<A>(_ type: A.Type) -> [Middleware] where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
-        return AuthMiddleware(type, using: self).middleware
+        return self.map { AuthMiddleware(type, $0) }
     }
 }
 

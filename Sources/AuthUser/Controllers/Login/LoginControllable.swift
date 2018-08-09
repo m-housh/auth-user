@@ -21,7 +21,7 @@ public protocol LoginControllable: RouteCollection {
     
     /// The `ResponseEncodable` type to return from the logout
     /// handler.
-    associatedtype LogoutResponseType: ResponseEncodable
+    associatedtype LogoutReturnType: ResponseEncodable
     
     /// Middleware that is used for all the routes in this
     /// `RouteCollection`.
@@ -29,28 +29,28 @@ public protocol LoginControllable: RouteCollection {
     
     /// The path to register the login route under.
     /// This defaults to '/login'
-    var loginPath: [PathComponentsRepresentable] { get }
+    var loginPath: String { get }
     
     /// The path to register the logout route under.
     /// This defaults to '/logout'.
-    var logoutPath: [PathComponentsRepresentable] { get }
+    var logoutPath: String { get }
     
     /// The handler for an actual login request.
     func loginHandler(_ request: Request) throws -> LoginReturnType
     
     /// The handler for an actual logout request.
-    func logoutHandler(_ request: Request) throws -> LogoutResponseType
+    func logoutHandler(_ request: Request) throws -> LogoutReturnType
     
 }
 
 extension LoginControllable {
     
-    public var loginPath: [PathComponentsRepresentable] {
-        return ["login"]
+    public var loginPath: String {
+        return "login"
     }
     
-    public var logoutPath: [PathComponentsRepresentable] {
-        return ["logout"]
+    public var logoutPath: String {
+        return "logout"
     }
     
     public var middleware: [Middleware] {
@@ -58,22 +58,12 @@ extension LoginControllable {
     }
 }
 
-extension LoginControllable where LogoutResponseType == Future<HTTPResponseStatus> {
-    
-    public func logoutHandler(_ request: Request) throws -> Future<HTTPResponseStatus> {
-        try request.unauthenticate(User.self)
-        return request.future(.ok)
-    }
-
-    
-}
-
 extension LoginControllable {
     
     /// See `RouteCollection`.
     public func boot(router: Router) throws {
         let group = router.grouped(middleware)
-        group.get(loginPath, use: loginHandler)
+        group.post(loginPath, use: loginHandler)
         group.get(logoutPath, use: logoutHandler)
     }
 }

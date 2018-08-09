@@ -9,15 +9,10 @@ import Vapor
 import Authentication
 import SimpleController
 
-public protocol AuthUserControllable: RouteCollection {
-    
-    associatedtype User: AuthUserSupporting
+public protocol AuthUserControllable: ModelControllable {
     
     /// The path used to register routes.
     var path: [PathComponentsRepresentable] { get }
-    
-    /// The `RouteCollection` that will handle most of the routes.
-    var collection: ModelRouteCollection<User> { get }
     
     /// `Middleware` to be used during the creation of a new
     /// `AuthUser`.
@@ -26,73 +21,71 @@ public protocol AuthUserControllable: RouteCollection {
     /// `Middleware` to be used for all the other routes.
     var middleware: [Middleware] { get }
     
-    /// Handler used for creating a new `AuthUser`
-    func createHandler(_ request: Request) throws -> Future<User>
 }
 
 /// Defaults
-extension AuthUserControllable where User.ResolvedParameter == Future<User> {
+extension AuthUserControllable where DBModel: AuthUserSupporting, DBModel.ResolvedParameter == Future<DBModel> {
     
-    public var createMiddleware: [Middleware] {
-        return []
-    }
-    
-    public func boot(router: Router) throws {
-        /// public
-        router.get(path, use: collection.getHandler)
-
-        /// authenticated routes
-        let authed = router.grouped(middleware)
-        authed.get(path, User.parameter, use: collection.getByIdHandler)
-        authed.put(path, User.parameter, use: collection.updateHandler)
-        authed.delete(path, User.parameter, use: collection.deleteHandler)
-        
-        /// special for creating users.
-        let createGroup = router.grouped(createMiddleware)
-        createGroup.post(path, use: createHandler)
-    }
-    
-    public func createHandler(_ request: Request) throws -> Future<User> {
-        return try request.content.decode(User.self).flatMap { model in
+    /// See `ModelControllable`.
+    public func createHandler(_ request: Request) throws -> Future<DBModel> {
+        return try request.content.decode(DBModel.self).flatMap { model in
             var user = model
-            user.password = try User.hashPassword(user.password)
+            user.password = try DBModel.hashPassword(user.password)
             return user.save(on: request)
         }
     }
 
 }
 
+
 extension Array where Element == AuthMiddlewareType {
     
-    static func `default`() -> [AuthMiddlewareType] {
+    fileprivate static func `default`() -> [AuthMiddlewareType] {
         return [.session, .basic, .login, .authOwner, .guardAuth]
     }
 }
 
-open class AuthUserController<A>:AuthUserControllable where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
+open class AuthUserController<A> where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
     
-    public typealias User = A
+    public let path: [PathComponentsRepresentable]
     
-    public var collection: ModelRouteCollection<User>
+    public let middleware: [Middleware]
     
-    public var path: [PathComponentsRepresentable] {
-        return self.collection.path
-    }
-    
-    public var middleware: [Middleware]
+    public let createMiddleware: [Middleware]
     
     init(path: PathComponentsRepresentable...,
-        using middleware: [AuthMiddlewareType]? = nil) {
+        using middleware: [AuthMiddlewareType]? = nil,
+        createMiddleware: [Middleware] = []) {
+        
+        self.path = path
+        self.createMiddleware = createMiddleware
         
         let middlewares = middleware ?? .default()
         
-        self.middleware = middlewares.authMiddleware(User.self)
-        
-        self.collection = ModelRouteCollection(
-            User.self,
-            path: path,
-            using: self.middleware
-        )
+        self.middleware = middlewares.authMiddleware(DBModel.self)
     }
     
+   
+}
+
+extension AuthUserController: AuthUserControllable, RouteCollection {
+    
+    /// See `ModelControllable`.
+    public typealias DBModel = A
+
+    /// See `RouteCollection`.
+    public func boot(router: Router) throws {
+        /// public
+        router.get(path, use: getHandler)
+        
+        /// authenticated routes
+        let authed = router.grouped(middleware)
+        authed.get(path, DBModel.parameter, use: getByIdHandler)
+        authed.put(path, DBModel.parameter, use: updateHandler)
+        authed.delete(path, DBModel.parameter, use: deleteHandler)
+        
+        /// special for creating users.
+        let createGroup = router.grouped(createMiddleware)
+        createGroup.post(path, use: createHandler)
+    }
 }

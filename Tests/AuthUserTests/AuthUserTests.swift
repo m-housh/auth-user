@@ -50,7 +50,7 @@ final class AuthUserTests: VaporTestCase {
             
             let login = try app.sendRequest(
                 to: "login",
-                method: .GET,
+                method: .POST,
                 headers: basicAuthHeaders
             )
             
@@ -66,7 +66,7 @@ final class AuthUserTests: VaporTestCase {
         perform {
             _ = try createUser()
             
-            let resp = try app.sendRequest(to: "/custom/login", method: .GET, headers: basicAuthHeaders)
+            let resp = try app.sendRequest(to: "/custom/login", method: .POST, headers: basicAuthHeaders)
             XCTAssertEqual(resp.http.status.code, 303)
             let location = resp.http.headers.firstValue(name: .location)
             XCTAssertEqual(location, "/")
@@ -78,7 +78,7 @@ final class AuthUserTests: VaporTestCase {
             XCTAssertThrowsError(
                 try app.sendRequest(
                     to: "login",
-                    method: .GET
+                    method: .POST
                 )
             ) { error in
                 XCTAssert(isUnauthorizedError(error))
@@ -123,7 +123,9 @@ final class AuthUserTests: VaporTestCase {
                 headers: headers
             )
     
-            XCTAssertEqual(resp.http.status.code, 200)
+            XCTAssertEqual(resp.http.status.code, 303)
+            let location = resp.http.headers.firstValue(name: .location)
+            XCTAssertEqual(location, "login")
             
         }
     }
@@ -142,7 +144,7 @@ final class AuthUserTests: VaporTestCase {
             _ = try createUser()
             let resp = try app.sendRequest(
                 to: "login",
-                method: .GET,
+                method: .POST,
                 headers: basicAuthHeaders
             )
             XCTAssertEqual(resp.http.status.code, 303)
