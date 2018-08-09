@@ -7,17 +7,38 @@
 
 import Vapor
 
+/// A `RouteCollection` that is responsible for logging in and
+/// logging out of users.
 public protocol LoginControllable: RouteCollection {
     
+    /// The `AuthUserSupporting` object that is used to
+    /// authenticate.
     associatedtype User: AuthUserSupporting
+    
+    /// The `ResponseEncodable` type to return from the login
+    /// handler.
     associatedtype LoginReturnType: ResponseEncodable
+    
+    /// The `ResponseEncodable` type to return from the logout
+    /// handler.
     associatedtype LogoutResponseType: ResponseEncodable
     
+    /// Middleware that is used for all the routes in this
+    /// `RouteCollection`.
     var middleware: [Middleware] { get }
+    
+    /// The path to register the login route under.
+    /// This defaults to '/login'
     var loginPath: [PathComponentsRepresentable] { get }
+    
+    /// The path to register the logout route under.
+    /// This defaults to '/logout'.
     var logoutPath: [PathComponentsRepresentable] { get }
     
+    /// The handler for an actual login request.
     func loginHandler(_ request: Request) throws -> LoginReturnType
+    
+    /// The handler for an actual logout request.
     func logoutHandler(_ request: Request) throws -> LogoutResponseType
     
 }
@@ -31,6 +52,10 @@ extension LoginControllable {
     public var logoutPath: [PathComponentsRepresentable] {
         return ["logout"]
     }
+    
+    public var middleware: [Middleware] {
+        return []
+    }
 }
 
 extension LoginControllable where LogoutResponseType == Future<HTTPResponseStatus> {
@@ -42,16 +67,6 @@ extension LoginControllable where LogoutResponseType == Future<HTTPResponseStatu
 
     
 }
-
-/*
-extension LoginControllable where User: ResponseEncodable, LoginReturnType == Future<User> {
-    
-    public func loginHandler(_ request: Request) throws -> Future<User> {
-        let user = try request.requireAuthenticated(User.self)
-        return request.future(user)
-    }
-}
-*/
 
 extension LoginControllable {
     

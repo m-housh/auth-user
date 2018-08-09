@@ -8,14 +8,19 @@
 import Vapor
 import Authentication
 
-
+/// A `RouteCollection` that is responsible for logging in and
+/// logging out users.  Redirecting users to a particular endpoint.
+/// once a successful login has occured.
 public protocol RedirectingLoginControllable: LoginControllable {
     
+    /// The endpoint to redirect to once a successful login has
+    /// occured.
     var loginRedirectPath: String { get }
 }
 
 extension RedirectingLoginControllable where LoginReturnType == Response {
     
+    /// See `LoginControllable`.
     public func loginHandler(_ request: Request) throws -> Response {
         _ = try request.requireAuthenticated(User.self)
         return request.redirect(to: loginRedirectPath)

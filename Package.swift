@@ -27,7 +27,7 @@ let package = Package(
         .package(url: "https://github.com/m-housh/vapor-testable.git", from: "0.1.1"),
         
         // SimpleController
-        .package(url: "https://github.com/m-housh/simplecontroller.git", from: "0.1.7"),
+        .package(url: "https://github.com/m-housh/simplecontroller.git", from: "0.1.8"),
         
         // 🔵 Swift ORM (queries, models, relations, etc) built on SQLite 3.
         .package(url: "https://github.com/vapor/fluent-sqlite.git", from: "3.0.0-rc.2"),

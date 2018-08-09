@@ -41,7 +41,6 @@ class VaporTestCase: XCTestCase, VaporTestable {
         router.get("loggedIn", use: loggedInHandler)
         
         
-        
         let authUserCollection = TestAuthUserController(path: "user")
         try router.register(collection: authUserCollection)
         
