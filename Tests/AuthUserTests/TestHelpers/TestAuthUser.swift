@@ -11,7 +11,7 @@ import Vapor
 @testable import AuthUser
 
 typealias TestAuthUser = AuthUser<SQLiteDatabase>
-typealias TestLoginController = LoginController<TestAuthUser>
+typealias TestLoginController = RedirectingLoginController<TestAuthUser>
 typealias TestAuthUserController = AuthUserController<TestAuthUser>
 
 /// Helper used in a route to test users are logged in.

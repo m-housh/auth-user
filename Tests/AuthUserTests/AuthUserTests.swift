@@ -62,6 +62,17 @@ final class AuthUserTests: VaporTestCase {
         }
     }
     
+    func testLoginControllerWithCustomMiddleware() {
+        perform {
+            _ = try createUser()
+            
+            let resp = try app.sendRequest(to: "/custom/login", method: .GET, headers: basicAuthHeaders)
+            XCTAssertEqual(resp.http.status.code, 303)
+            let location = resp.http.headers.firstValue(name: .location)
+            XCTAssertEqual(location, "/")
+        }
+    }
+    
     func testLoginFailsWithNoAuthHeader() {
         perform {            
             XCTAssertThrowsError(
@@ -194,7 +205,8 @@ final class AuthUserTests: VaporTestCase {
         ("testRedirectsAfterLogin", testRedirectsAfterLogin),
         ("testAuthOwnerMiddlewareFails", testAuthOwnerMiddlewareFails),
         ("testAuthOwnerMiddlewareFails", testAuthOwnerMiddlewareFails),
-        ("testUniqueOnUsername", testUniqueOnUsername)
+        ("testUniqueOnUsername", testUniqueOnUsername),
+        ("testLoginControllerWithCustomMiddleware", testLoginControllerWithCustomMiddleware),
     ]
 }
 

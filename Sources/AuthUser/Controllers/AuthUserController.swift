@@ -37,15 +37,6 @@ extension AuthUserControllable where User.ResolvedParameter == Future<User> {
         return []
     }
     
-    public var middleware: [Middleware] {
-        return [
-            User.authSessionsMiddleware(),
-            User.basicAuthMiddleware(using: BCrypt),
-            AuthOwnerMiddleware<User>(),
-            User.guardAuthMiddleware()
-        ]
-    }
-    
     public func boot(router: Router) throws {
         /// public
         router.get(path, use: collection.getHandler)
@@ -71,6 +62,13 @@ extension AuthUserControllable where User.ResolvedParameter == Future<User> {
 
 }
 
+extension Array where Element == AuthMiddlewareType {
+    
+    static func `default`() -> [AuthMiddlewareType] {
+        return [.session, .basic, .login, .authOwner, .guardAuth]
+    }
+}
+
 open class AuthUserController<A>:AuthUserControllable where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
     
     public typealias User = A
@@ -81,13 +79,19 @@ open class AuthUserController<A>:AuthUserControllable where A: AuthUserSupportin
         return self.collection.path
     }
     
+    public var middleware: [Middleware]
+    
     init(path: PathComponentsRepresentable...,
-        using middleware: [Middleware]? = nil) {
+        using middleware: [AuthMiddlewareType]? = nil) {
+        
+        let middlewares = middleware ?? .default()
+        
+        self.middleware = middlewares.authMiddleware(User.self)
         
         self.collection = ModelRouteCollection(
             User.self,
             path: path,
-            using: middleware
+            using: self.middleware
         )
     }
     

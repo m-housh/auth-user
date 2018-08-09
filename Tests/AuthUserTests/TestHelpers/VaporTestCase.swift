@@ -23,17 +23,24 @@ class VaporTestCase: XCTestCase, VaporTestable {
     }
     
     func routes(_ router: Router) throws {
+                
         let loginCollection = TestLoginController(
-            loginRedirect: "loggedIn",
-            using: [
-                TestAuthUser.authSessionsMiddleware(),
-                TestAuthUser.basicAuthMiddleware(using: BCrypt),
-                TestAuthUser.guardAuthMiddleware()
-            ]
+            redirectingTo: "loggedIn"
+            //using: .session, .basic, .authOwner, .guardAuth
         )
+        
+        let customLogin = TestLoginController(
+            using: .basic, .guardAuth
+        )
+        
+        let customGroup = router.grouped("custom")
+        try customGroup.register(collection: customLogin)
+        
         
         try router.register(collection: loginCollection)
         router.get("loggedIn", use: loggedInHandler)
+        
+        
         
         let authUserCollection = TestAuthUserController(path: "user")
         try router.register(collection: authUserCollection)
