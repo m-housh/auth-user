@@ -40,7 +40,7 @@ public final class AuthUser<D>: AuthUserSupporting where D: Database & QuerySupp
     public var username: String
     public var password: String
     
-    init(id: UUID? = nil, username: String, password: String) {
+    public init(id: UUID? = nil, username: String, password: String) {
         self.id = id
         self.username = username
         self.password = password

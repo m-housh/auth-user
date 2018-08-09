@@ -36,10 +36,10 @@ public enum AuthMiddlewareType {
 
 public struct AuthMiddleware<A> where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
     
-    let middleware: AuthMiddlewareType
-    let type: A.Type
+    public let middleware: AuthMiddlewareType
+    public let type: A.Type
     
-    init(_ type: A.Type = A.self, _ middleware: AuthMiddlewareType) {
+    public init(_ type: A.Type = A.self, _ middleware: AuthMiddlewareType) {
         self.type = type
         self.middleware = middleware
     }

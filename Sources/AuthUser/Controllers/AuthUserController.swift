@@ -53,7 +53,7 @@ open class AuthUserController<A> where A: AuthUserSupporting, A.ResolvedParamete
     
     public let createMiddleware: [Middleware]
     
-    init(path: PathComponentsRepresentable...,
+    public init(path: PathComponentsRepresentable...,
         using middleware: [AuthMiddlewareType]? = nil,
         createMiddleware: [Middleware] = []) {
         

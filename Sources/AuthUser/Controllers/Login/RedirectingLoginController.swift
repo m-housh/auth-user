@@ -57,7 +57,7 @@ public final class RedirectingLoginController<A>: RedirectingLoginControllable w
     public var loginRedirectPath: String = "/"
     public var middleware: [Middleware] = []
     
-    init(redirectingTo path: String = "/", using middleware: AuthMiddlewareType...) {
+    public init(redirectingTo path: String = "/", using middleware: AuthMiddlewareType...) {
         
         self.loginRedirectPath = path
         

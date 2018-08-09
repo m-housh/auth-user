@@ -83,7 +83,7 @@ class VaporTestCase: XCTestCase, VaporTestable {
         /// Configure migrations
         var migrations = MigrationConfig()
         migrations.add(model: TestAuthUser.self, database: .sqlite)
-        migrations.add(model: TestAuthUser.self, database: .sqlite)
+        //migrations.add(model: TestAuthUser.self, database: .sqlite)
         
         services.register(migrations)
         
@@ -107,5 +107,4 @@ class VaporTestCase: XCTestCase, VaporTestable {
             try self.revert()
         }
     }
-    
 }
