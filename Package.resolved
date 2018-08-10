@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/auth.git",
         "state": {
           "branch": null,
-          "revision": "8c783272bbef7490781e0879ae5e9b5ceced0ec0",
-          "version": "2.0.0-rc.5"
+          "revision": "f5835c28988452780243f2d15c6a68ed9ebf5e60",
+          "version": "2.0.0"
         }
       },
       {

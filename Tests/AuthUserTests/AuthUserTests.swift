@@ -3,6 +3,9 @@ import Authentication
 import Vapor
 import FluentSQLite
 @testable import AuthUser
+@testable import AuthUserTester
+
+
 
 final class AuthUserTests: VaporTestCase {
    

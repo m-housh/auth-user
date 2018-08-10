@@ -40,9 +40,9 @@ let package = Package(
             dependencies: ["Vapor", "Fluent", "SimpleController", "Authentication"]),
         .target(
             name: "AuthUserTester",
-            dependencies: ["AuthUser"]),
+            dependencies: ["AuthUser", "VaporTestable"]),
         .testTarget(
             name: "AuthUserTests",
-            dependencies: ["AuthUser", "VaporTestable", "FluentSQLite"]),
+            dependencies: ["AuthUser", "VaporTestable", "FluentSQLite", "AuthUserTester"]),
     ]
 )
