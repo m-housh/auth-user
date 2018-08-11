@@ -9,12 +9,14 @@ import XCTest
 import Authentication
 import Vapor
 import FluentSQLite
+import VaporTestable
 @testable import AuthUser
 @testable import AuthUserTester
 
 
-final class AuthTester: XCTestCase, DatabaseRegisterable, AuthUserTestable  {
+final class AuthTester: XCTestCase, AuthUserTestable, DatabaseRegisterable {
     
+    /// See `DatabaseRegisterable`
     func registerDatabase(_ services: inout Services) throws {
         try services.register(FluentSQLiteProvider())
         var databases = DatabasesConfig()
@@ -23,20 +25,31 @@ final class AuthTester: XCTestCase, DatabaseRegisterable, AuthUserTestable  {
         services.register(databases)
     }
     
+    /// See `DatabaseRegisterable`
     func registerMigrations(_ services: inout Services) {
         var migrations = MigrationConfig()
         migrations.add(model: AuthUser<SQLiteDatabase>.self, database: .sqlite)
         services.register(migrations)
     }
     
+    // See `AuthUserTestable`
+    typealias Database = SQLiteDatabase
+
     
     var app: Application!
+    var tester: AuthUserTester<SQLiteDatabase>!
     
-    typealias D = SQLiteDatabase
+    // See `AuthUserTestable`
+    var path: String = "user"
+    
     
     override func setUp() {
         perform {
             app = try! makeApplication()
+            tester = AuthUserTester<SQLiteDatabase>(
+                app: app,
+                path: path
+            )
         }
     }
     
@@ -50,23 +63,23 @@ final class AuthTester: XCTestCase, DatabaseRegisterable, AuthUserTestable  {
     
     
     func testCreateAll() {
-        perform { try createUsers() }
+        perform { try tester.createUsers() }
     }
     
     func testGetByID() {
-        perform { try getByID() }
+        perform { try tester.getByID() }
     }
     
     func testGetAll() {
-        perform { try getAll() }
+        perform { try tester.getAll() }
     }
     
     func testDelete() {
-        perform { try delete() }
+        perform { try tester.delete() }
     }
     
     func testUpdate() {
-        perform { try update() }
+        perform { try tester.update() }
     }
     
     static var allTests = [
