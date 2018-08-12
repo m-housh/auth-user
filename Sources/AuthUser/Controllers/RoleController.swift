@@ -16,7 +16,7 @@ public final class RoleController<D> where D: QuerySupporting & JoinSupporting {
     public var path: [PathComponentsRepresentable]
     public var middleware: [Middleware]
     
-    init(path: PathComponentsRepresentable..., middleware: [Middleware] = []) {
+    public init(path: PathComponentsRepresentable..., middleware: [Middleware] = []) {
         self.path = path
         self.middleware = middleware
     }
