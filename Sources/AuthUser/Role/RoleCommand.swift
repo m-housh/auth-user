@@ -29,12 +29,12 @@ public struct RoleCommand<D>: Command where D: QuerySupporting {
         let name = try context.argument("name")
         let dbid = try RoleType.requireDefaultDatabase()
         
-        return context.container.newConnection(to: dbid).flatMap { conn in
+        return context.container.withPooledConnection(to: dbid, closure: { conn in
             return try RoleType.findOrCreate(name, on: conn).flatMap { role in
                 context.console.print("Created role: \(role.name)")
                 _ = role.save(on: conn)
                 return .done(on: context.container)
             }
-        }
+        }) 
     }
 }
