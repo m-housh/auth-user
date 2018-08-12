@@ -20,7 +20,7 @@ public protocol DatabaseRegisterable {
 
 public protocol AuthUserTestable: VaporTestable {
     
-    associatedtype Database: QuerySupporting & MigrationSupporting
+    associatedtype Database: QuerySupporting & MigrationSupporting & JoinSupporting
     var path: String { get }
 }
 
@@ -30,7 +30,7 @@ extension AuthUserTestable {
     
     /// See `VaporTestable`.
     public func routes(_ router: Router) throws {
-        let controller = AuthUserController<AuthUser<Database>>(path: path)
+        let controller = AuthUserController<Database>(path: path)
         try router.register(collection: controller)
     }
 }

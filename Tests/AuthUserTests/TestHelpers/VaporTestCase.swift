@@ -17,6 +17,12 @@ class VaporTestCase: XCTestCase, VaporTestable {
     
     var app: Application!
     
+    let testUsername = "test"
+    let testPassword = "password"
+    let roleName = "user"
+    
+    
+    
     private func loggedInHandler(_ request: Request) throws -> LoggedInContext {
         let user = try request.requireAuthenticated(TestAuthUser.self)
         return LoggedInContext(for: user)
@@ -54,6 +60,8 @@ class VaporTestCase: XCTestCase, VaporTestable {
             return try req.requireAuthenticated(TestAuthUser.self)
         }
         
+        let rolesController = TestRoleController(path: "user", "role")
+        try router.register(collection: rolesController)
         
         //try router.register(collection: SQLiteAuthUserController())
         //try router.register(collection: collection)
@@ -83,6 +91,8 @@ class VaporTestCase: XCTestCase, VaporTestable {
         /// Configure migrations
         var migrations = MigrationConfig()
         migrations.add(model: TestAuthUser.self, database: .sqlite)
+        migrations.add(model: TestRole.self, database: .sqlite)
+        migrations.add(model: TestUserRole.self, database: .sqlite)
         //migrations.add(model: TestAuthUser.self, database: .sqlite)
         
         services.register(migrations)
@@ -90,6 +100,7 @@ class VaporTestCase: XCTestCase, VaporTestable {
         /// Command configuration
         var commandConfig = CommandConfig.default()
         commandConfig.useFluentCommands()
+        commandConfig.use(TestRoleCommand(), as: "role")
         services.register(commandConfig)
         
         config.prefer(MemoryKeyedCache.self, for: KeyedCache.self)
@@ -106,5 +117,46 @@ class VaporTestCase: XCTestCase, VaporTestable {
         perform {
             try self.revert()
         }
+    }
+}
+
+/// Common Helpers
+extension VaporTestCase {
+    
+    public func createUser(_ user: TestAuthUser? = nil) throws -> TestPublicUser {
+        
+        let user = user ??
+            TestAuthUser(username: testUsername, password: testPassword)
+        
+        return try app.getResponse(
+            to: "/user",
+            method: .POST,
+            headers: .init(),
+            data: user,
+            decodeTo: TestPublicUser.self
+        )
+    }
+    
+    public func createRole(_ role: TestRole? = nil) throws -> TestRole {
+        let role = role ?? TestRole(name: roleName)
+        
+        return try app.getResponse(
+            to: "/user/role",
+            method: .POST,
+            headers: .init(),
+            data: role,
+            decodeTo: TestRole.self
+        )
+        
+    }
+    
+    var credentials: BasicAuthorization {
+        return BasicAuthorization(username: testUsername, password: testPassword)
+    }
+    
+    var basicAuthHeaders: HTTPHeaders {
+        var headers = HTTPHeaders()
+        headers.basicAuthorization = credentials
+        return headers
     }
 }

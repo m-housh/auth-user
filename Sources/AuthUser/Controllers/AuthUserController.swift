@@ -45,7 +45,7 @@ extension Array where Element == AuthMiddlewareType {
     }
 }
 
-open class AuthUserController<A> where A: AuthUserSupporting, A.ResolvedParameter == Future<A> {
+open class AuthUserController<D> where D: JoinSupporting {
     
     public let path: [PathComponentsRepresentable]
     
@@ -64,19 +64,59 @@ open class AuthUserController<A> where A: AuthUserSupporting, A.ResolvedParamete
         
         self.middleware = middlewares.authMiddleware(DBModel.self)
     }
-    
    
 }
 
 extension AuthUserController: AuthUserControllable, RouteCollection {
     
     /// See `ModelControllable`.
-    public typealias DBModel = A
+    public typealias DBModel = AuthUser<D>
+    
+    /// Here for testing, but needs to be permanent that all
+    /// routes return a `PublicUser`.
+    public func getByID(_ request: Request) throws -> Future<PublicUser<D>> {
+        return try getByIdHandler(request).flatMap { user in
+            return try PublicUser<D>.convert(user, on: request)
+        }
+    }
+    
+    public func create(_ request: Request) throws -> Future<PublicUser<D>> {
+        return try createHandler(request).flatMap { user in
+            return try PublicUser<D>.convert(user, on: request)
+        }
+    }
+    
+    public func addRole(_ request: Request) throws -> Future<PublicUser<D>> {
+        return try getByIdHandler(request).flatMap{ user in
+            return try request.parameters.next(Role<D>.self).flatMap { role in
+                return user.roles.attach(role, on: request).flatMap { _ in
+                    return try PublicUser<D>.convert(user, on: request)
+                }
+            }
+        }
+    }
 
+    /*
+    public func get(_ r: Request) throws -> Future<[PublicUser<D>]> {
+        return try getHandler(r).map { users in
+            var p = [PublicUser<D>]()
+            for u in users {
+                p.append(try PublicUser<D>.syncConvert(u, on: r))
+            }
+            return p
+        }
+    }*/
+    
     /// See `RouteCollection`.
     public func boot(router: Router) throws {
         /// public
+        /// TODO: Remove this path or protect w/ admin role.
         router.get(path, use: getHandler)
+        
+        /// for testing
+        /// TODO: remove this path.
+        router.get(path, DBModel.parameter, "public", use: getByID)
+        router.get(path, DBModel.parameter, "addRole", Role<D>.parameter, use: addRole)
         
         /// authenticated routes
         let authed = router.grouped(middleware)
@@ -86,6 +126,6 @@ extension AuthUserController: AuthUserControllable, RouteCollection {
         
         /// special for creating users.
         let createGroup = router.grouped(createMiddleware)
-        createGroup.post(path, use: createHandler)
+        createGroup.post(path, use: create)
     }
 }

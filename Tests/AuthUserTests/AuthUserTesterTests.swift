@@ -29,6 +29,8 @@ final class AuthTester: XCTestCase, AuthUserTestable, DatabaseRegisterable {
     func registerMigrations(_ services: inout Services) {
         var migrations = MigrationConfig()
         migrations.add(model: AuthUser<SQLiteDatabase>.self, database: .sqlite)
+        migrations.add(model: Role<SQLiteDatabase>.self, database: .sqlite)
+        migrations.add(model: UserRole<SQLiteDatabase>.self, database: .sqlite)
         services.register(migrations)
     }
     

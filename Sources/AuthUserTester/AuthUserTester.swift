@@ -13,7 +13,7 @@ import Vapor
 import Authentication
 import XCTest
 
-public final class AuthUserTester<Database> where Database: MigrationSupporting & QuerySupporting {
+public final class AuthUserTester<Database> where Database: MigrationSupporting & QuerySupporting & JoinSupporting {
     
     //fileprivate typealias D = Database
     public let app: Application
@@ -34,25 +34,25 @@ public final class AuthUserTester<Database> where Database: MigrationSupporting 
         self.expectedDeleteCode = deleteCode
     }
     
-    private func create(_ user: AuthUser<Database>) throws -> AuthUser<Database> {
+    private func create(_ user: AuthUser<Database>) throws -> PublicUser<Database> {
         return try app.getResponse(
             to: path,
             method: .POST,
             headers: .init(),
             data: user,
-            decodeTo: AuthUser<Database>.self
+            decodeTo: PublicUser<Database>.self
         )
     }
     
-    private func createAll() throws -> [AuthUser<Database>] {
-        var users: [AuthUser<Database>] = []
+    private func createAll() throws -> [PublicUser<Database>] {
+        var users: [PublicUser<Database>] = []
         for u in self.users {
             users.append(try create(u))
         }
         return users
     }
     
-    private func authHeaders(_ user: AuthUser<Database>) throws -> HTTPHeaders {
+    private func authHeaders(_ user: PublicUser<Database>) throws -> HTTPHeaders {
         let user = self.users.first {
             $0.username == user.username }!
         
@@ -108,12 +108,20 @@ public final class AuthUserTester<Database> where Database: MigrationSupporting 
         for (i, user) in users.enumerated() {
             let username = "\(user.username)-\(i)"
             let headers = try authHeaders(user)
-            user.username = username
+            let password = self.users.first { $0.username == user.username }!.password
+            
+            let updated = AuthUser<Database>(
+                id: user.id,
+                username: username,
+                password: password
+            )
+            
+            //user.username = username
             let resp = try app.getResponse(
                 to: "\(path)/\(user.id!)",
                 method: .PUT,
                 headers: headers,
-                data: user,
+                data: updated,
                 decodeTo: AuthUser<Database>.self
             )
             

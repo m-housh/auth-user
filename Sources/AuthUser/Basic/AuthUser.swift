@@ -2,8 +2,8 @@ import Vapor
 import Fluent
 import Authentication
 
-public final class AuthUser<D>: AuthUserSupporting
-                    where D: Database & QuerySupporting {
+public final class AuthUser<D>: BasicAuthUserSupporting
+                    where D: QuerySupporting {
     
     public typealias Database = D
     public typealias ID = UUID

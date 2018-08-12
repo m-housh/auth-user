@@ -8,20 +8,10 @@ import FluentSQLite
 
 
 final class AuthUserTests: VaporTestCase {
-   
-    let testUsername = "test"
-    let testPassword = "password"
+    
     let path = "user"
     
-    var credentials: BasicAuthorization {
-        return BasicAuthorization(username: testUsername, password: testPassword)
-    }
     
-    var basicAuthHeaders: HTTPHeaders {
-        var headers = HTTPHeaders()
-        headers.basicAuthorization = credentials
-        return headers
-    }
     
     func testExample() {
         // This is an example of a functional test case.
@@ -31,6 +21,8 @@ final class AuthUserTests: VaporTestCase {
         XCTAssert(true)
     }
     
+    ///Remove
+    /*
     func testPasswordGetsHashed() {
         
         perform {
@@ -45,7 +37,7 @@ final class AuthUserTests: VaporTestCase {
             
             XCTAssertNotEqual(user.password, created.password)
         }
-    }
+    }*/
     
     func testLoginRedirects() {
         perform {
@@ -199,9 +191,23 @@ final class AuthUserTests: VaporTestCase {
         }
     }
     
+    func testAddRole() {
+        perform {
+            let user = try createUser()
+            let role = try createRole()
+            let path = "\(self.path)/\(user.id!)/addRole/\(role.id!)"
+            let resp = try app.getResponse(
+                to: path,
+                decodeTo: TestPublicUser.self
+            )
+            
+            XCTAssertEqual(resp.roles, [roleName])
+        }
+    }
+    
     static var allTests = [
         ("testExample", testExample),
-        ("testPasswordGetsHashed", testPasswordGetsHashed),
+        //("testPasswordGetsHashed", testPasswordGetsHashed),
         ("testLoginRedirects", testLoginRedirects),
         ("testLoginFailsWithNoAuthHeader", testLoginFailsWithNoAuthHeader),
         ("testAuthenticatedRoutes", testAuthenticatedRoutes),
@@ -218,6 +224,7 @@ final class AuthUserTests: VaporTestCase {
 /// Helpers
 extension AuthUserTests {
     
+    /*
     func  createUser(_ user: TestAuthUser? = nil) throws -> TestAuthUser {
         
         let userToCreate = user ?? TestAuthUser(username: testUsername, password: testPassword)
@@ -228,7 +235,7 @@ extension AuthUserTests {
             data: userToCreate,
             decodeTo: TestAuthUser.self
         )
-    }
+    }*/
     
     func isUnauthorizedError(_ error: Error) -> Bool {
         guard let err = error as? Abort else {
