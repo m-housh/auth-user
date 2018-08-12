@@ -31,7 +31,8 @@ public struct RoleCommand<D>: Command where D: QuerySupporting {
         
         return context.container.newConnection(to: dbid).flatMap { conn in
             return try RoleType.findOrCreate(name, on: conn).flatMap { role in
-                context.console.print(role.name)
+                context.console.print("Created role: \(role.name)")
+                _ = role.save(on: conn)
                 return .done(on: context.container)
             }
         }
