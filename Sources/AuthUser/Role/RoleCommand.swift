@@ -28,13 +28,23 @@ public struct RoleCommand<D>: Command where D: QuerySupporting {
     public func run(using context: CommandContext) throws -> EventLoopFuture<Void> {
         let name = try context.argument("name")
         //let dbid = try RoleType.requireDefaultDatabase()
-        let client = try context.container.make(Client.self)
+        //let client = try context.container.make(Client.self)
         let url = URL(string: "/user/role/findOrCreate/\(name)")!
+        let request = HTTPRequest(method: .GET, url: url, headers: .init())
+        let wrappedRequest = Request(http: request, using: context.container)
+        let responder = try context.container.make(Responder.self)
         
-        return client.get(url).flatMap { resp in
+        
+        return try responder.respond(to: wrappedRequest).flatMap { resp in
             return try resp.content.decode(RoleType.self).flatMap { role in
                 context.console.print()
-                context.console.print("Created role: \(role.name), \(role.id)")
+                if let id = role.id {
+                    context.console.print("Created role: \(role.name), \(id)")
+                }
+                else {
+                    context.console.print("Failed to create role.")
+                }
+               
                 return .done(on: context.container)
             }
         }
