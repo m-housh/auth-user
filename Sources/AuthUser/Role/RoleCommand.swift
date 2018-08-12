@@ -11,6 +11,8 @@ import Fluent
 public struct RoleCommand<D>: Command where D: QuerySupporting {
    
     public typealias RoleType = Role<D>
+   
+    public init() { }
     
     public var arguments: [CommandArgument] {
         return [.argument(name: "name")]
